@@ -184,11 +184,13 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 ## 链接提取
 
+流程图写的是要判断下链接是否规范，这边偷懒，就不用```if选择器```做判断了，全部都直接走```提取代码节点```
+
 **Python代码进行链接提取**
 
 添加```代码```节点，设置url输出变量后，点击```在IDE中编辑```，选择```python```，复制以下代码
 
-![1727185118040](https://github.com/user-attachments/assets/98a32be5-445c-488b-87cc-eff8e31b5308)
+![添加代码节点](https://github.com/user-attachments/assets/98a32be5-445c-488b-87cc-eff8e31b5308)
 
 ![IDE编辑页面](https://github.com/user-attachments/assets/c0e97646-2a65-4e57-9370-11762d5c369d)
 
@@ -211,7 +213,20 @@ async def main(args: Args) -> Output:
     return ret
 ```
 
+**测试节点**
+
+![测试节点1](https://github.com/user-attachments/assets/4ecb8e7f-ee2d-481b-93e7-3b40182a5bd1)
+
+![测试节点2](https://github.com/user-attachments/assets/07bbe0c9-9b2a-467d-8173-6853e170a968)
+
+**复制代码节点**
+
+复制节点并跟```else```连线
+
+![复制代码节点](https://github.com/user-attachments/assets/80549398-38e0-46ad-86c6-02e8490f312b)
 
 
+## "视频"分支-提取标题
 
+新建一个
 
