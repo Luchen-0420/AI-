@@ -180,7 +180,37 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 ![新增if选择器节点](https://github.com/user-attachments/assets/d4e61291-a1ff-4eb4-a1e2-4438e7b1e6ab)
 
-![节点配置](https://github.com/user-attachments/assets/0295e116-cb4b-4816-91ea-5e7866058087)
+![节点配置](https://github.com/user-attachments/assets/bbac71ee-223d-448a-b7bd-45f222769a7e)
+
+## 链接提取
+
+**Python代码进行链接提取**
+
+添加```代码```节点，设置url输出变量后，点击```在IDE中编辑```，选择```python```，复制以下代码
+
+![1727185118040](https://github.com/user-attachments/assets/98a32be5-445c-488b-87cc-eff8e31b5308)
+
+![IDE编辑页面](https://github.com/user-attachments/assets/c0e97646-2a65-4e57-9370-11762d5c369d)
+
+```
+async def main(args: Args) -> Output:
+    params = args.params
+    share_link = params['input']
+    
+    url = ""
+    start = share_link.find("https")
+    if start != -1:
+        end = share_link.find(" ", start)
+        if end == -1:
+            end = len(share_link)
+        url = share_link[start:end]
+
+    ret: Output = {
+        "url": url
+    }
+    return ret
+```
+
 
 
 
