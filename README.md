@@ -159,7 +159,7 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 ![新建工作流](https://github.com/user-attachments/assets/b065f99d-92a9-40d9-b6ce-2a1599859665)
 
-## 定义一些输入变量
+## 定义输入变量
 
 点击```开始节点```的```新增```
 
@@ -167,6 +167,21 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 依次新增几个输入变量
 
-![变量分类](https://github.com/user-attachments/assets/b27b3beb-ffa3-4917-abaa-4ffe64d7bb9d)
+![变量分类](https://github.com/user-attachments/assets/9b1206b2-b9e0-4956-a8af-4dc35085059a)
 
-如上图所示，我们要新增的变量分别有```链接```、```类型```、```分类```
+
+我们要新增的变量分别有```链接```、```体裁```、```tag```、```收藏原因```
+
+![新增输入变量](https://github.com/user-attachments/assets/0d298f20-4f4e-468a-8b81-e02e5a8d92e1)
+
+## 判断体裁
+
+点击左侧```if选择器```节点，并配置。
+
+![新增if选择器节点](https://github.com/user-attachments/assets/d4e61291-a1ff-4eb4-a1e2-4438e7b1e6ab)
+
+![节点配置](https://github.com/user-attachments/assets/0295e116-cb4b-4816-91ea-5e7866058087)
+
+
+
+
