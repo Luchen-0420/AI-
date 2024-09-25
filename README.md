@@ -1,4 +1,4 @@
-# AI·个人知识收藏小助手
+![1727235535881](https://github.com/user-attachments/assets/3fa3bf3e-8314-4f18-b753-d3d947aafd03)# AI·个人知识收藏小助手
 手把手带你用coze从0实现一个AI·收藏助手，并接入飞书文档+微信公众号，让你随时随地都能无感收藏+推荐阅读+关键词灵感记录。
 
 # 前情概要                                                          
@@ -149,17 +149,17 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 # 内容收藏工作流搭建
 
-## 功能流程图
+## 一、功能流程图
 
 ![先判断类型，再判断链接是否标准](https://github.com/user-attachments/assets/d3792829-5081-4847-8f86-f83ec16207bd)
 
-## 新建content_arrange工作流
+## 二、新建content_arrange工作流
 
 根据弹窗，一步步填写完成后就能看到图下页面。
 
 ![新建工作流](https://github.com/user-attachments/assets/b065f99d-92a9-40d9-b6ce-2a1599859665)
 
-## 定义输入变量
+## 三、定义输入变量
 
 点击```开始节点```的```新增```
 
@@ -170,11 +170,14 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 ![变量分类](https://github.com/user-attachments/assets/9b1206b2-b9e0-4956-a8af-4dc35085059a)
 
 
-我们要新增的变量分别有```链接```、```体裁```、```tag```、```收藏原因```
+我们要新增的变量分别有```链接```、```体裁```、```tag```、```收藏原因```。
 
-![新增输入变量](https://github.com/user-attachments/assets/0d298f20-4f4e-468a-8b81-e02e5a8d92e1)
+判断是否要进行链接提取，我们需要加一个boolean值的变量作为判断。
 
-## 判断体裁
+![新增输入变量](https://github.com/user-attachments/assets/d8cb5faa-4506-48ae-9695-937f16c36f8c)
+
+
+## 四、判断体裁
 
 点击左侧```if选择器```节点，并配置。
 
@@ -182,11 +185,36 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 ![节点配置](https://github.com/user-attachments/assets/bbac71ee-223d-448a-b7bd-45f222769a7e)
 
-## 链接提取
+## 五、选择是否需要提取url地址
 
-流程图写的是要判断下链接是否规范，这边偷懒，就不用```if选择器```做判断了，全部都直接走```提取代码节点```
 
-**Python代码进行链接提取**
+没有直接默认全部提取是因为，有的分享链接包含了视频标题信息，有的只有url地址（比如youtube)。
+
+针对包含其他信息的链接，需要做一个url+标题+平台提取。针对只有url地址的，只提取平台。
+
+新增一个```if选择器```节点，并配置。
+
+![节点配置](https://github.com/user-attachments/assets/503c6a62-db14-42d9-af89-4878f4f7b22b)
+
+## 六、"视频"分支---包含其他信息的分享处理
+
+```
+9.99 Eus:/ 12/21 J@i.Ch 大连千万级博主总结的大连旅游注意事项，看这一个就足够足够了 # 大连旅游攻略 # 大连 # 大连美食   https://v.douyin.com/iksNQqte/ 复制此链接，打开Dou音搜索，直接观看视频！
+```
+可以看出分享链接里除了包含标题部分，还包含了tag。我不采集tag的原因是太多了，自媒体打tag是为了入池，自己做知识整理的时候，不想打太多tag。有兴趣想直接提取tag写入的，可以自己改造下。
+
+针对以上分享链接，我们要做2件事：
+
+1. 提取出有效url地址
+2. 提取出标题和平台名称
+
+```提取有效url地址```：用到```代码节点```来保证提取的准确性。
+
+```提取标题、平台名称```：用到```大模型节点```，设定提示词，让大模型来提取出我们想要的信息。
+
+**1. Python代码进行链接提取**
+
+选择用代码节点的原因是大模型节点有时候并不能100%能按照要求提取，用代码节点更可靠些。
 
 添加```代码```节点，设置url输出变量后，点击```在IDE中编辑```，选择```python```，复制以下代码
 
@@ -194,39 +222,98 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 ![IDE编辑页面](https://github.com/user-attachments/assets/c0e97646-2a65-4e57-9370-11762d5c369d)
 
+**2. 代码思路**
+
+1. 查找 URL 起始位置：使用 find() 方法查找字符串中 http:// 或 https:// 的起始位置。如果找到其中一个，就记录这个位置作为 URL 的起始位置。如果没有找到任何有效的 URL 起始位置，返回 "没有找到有效url"。
+2.  查找 URL 结束位置：初始化一个变量 end 为 URL 的起始位置。使用 while 循环遍历字符串，逐个检查字符，继续向后移动 end 位置，直到遇到空格、换行符、逗号、句号或其他标志着 URL 的结束标点符号。
+3.  截取 URL：使用确定的起始和结束位置，从输入字符串中截取 URL。去掉可能存在的前后空白。
+4.  特殊处理抖音短链接：如果提取的 URL 是来自于抖音短链接（v.douyin.com），且没有以 / 结尾，则尝试将 URL 截取到最后一个 /。这样可以确保抖音的短链接以 / 结尾。
+
 ```
-async def main(args: Args) -> Output:
-    params = args.params
+async def main(args):
+    params = args['params']
     share_link = params['input']
-    
-    url = ""
-    start = share_link.find("https")
-    if start != -1:
-        end = share_link.find(" ", start)
-        if end == -1:
-            end = len(share_link)
-        url = share_link[start:end]
 
-    ret: Output = {
-        "url": url
-    }
-    return ret
+    # 查找 "http://" 或 "https://" 的起始位置
+    start = share_link.find("http://")
+    if start == -1:
+        start = share_link.find("https://")
+    
+    if start != -1:
+        # 查找 URL 末尾的空格、换行符、逗号、句号等作为终止位置
+        end = start  # 初始化结束位置为起始位置
+        while end < len(share_link) and share_link[end] not in [" ", "\n", ",", "。", "，", "？"]:
+            end += 1
+
+        # 截取 URL
+        url = share_link[start:end].strip()
+        
+        # 针对抖音短链接，确保以 "/" 结尾
+        if "v.douyin.com" in url and not url.endswith("/"):
+            last_slash = url.rfind("/")
+            url = url[:last_slash + 1] if last_slash != -1 else url
+    else:
+        url = "没有找到有效链接"
+    
+    return {"url": url}
 ```
 
-**测试节点**
+**3. 测试代码**
 
-![测试节点1](https://github.com/user-attachments/assets/4ecb8e7f-ee2d-481b-93e7-3b40182a5bd1)
+![小红书移动端分享链接](https://github.com/user-attachments/assets/59289a69-3f2f-4133-bc9a-d494036153c7)
 
-![测试节点2](https://github.com/user-attachments/assets/07bbe0c9-9b2a-467d-8173-6853e170a968)
+![小红书网页端分享链接](https://github.com/user-attachments/assets/16d2ccea-f645-4b6b-9120-ea1059bb3ccc)
 
-**复制代码节点**
+![抖音移动端分享链接](https://github.com/user-attachments/assets/3412396b-e792-47b0-ae23-dcb8d85a87f8)
 
-复制节点并跟```else```连线
+**4. 新建大模型节点**
 
-![复制代码节点](https://github.com/user-attachments/assets/80549398-38e0-46ad-86c6-02e8490f312b)
+![大模型节点配置](https://github.com/user-attachments/assets/22268a1b-263d-44ac-9c89-591804aa3958)
+
+1. 选择你想用的```大模型```，我这里选的kimi。
+2. 定义输入变量：变量值引用的是原始分享链接的url（开始节点的url）
+3. 设置提示词：引用输入参数"input"。
+4. 定义输出变量：我需要输出一个标题、一个平台名称。
+
+```提示词```
+
+```
+# 分享链接标题提取提示词
+
+你是一个专门用于从任何社交媒体分享链接中提取标题的AI助手。你的任务是从给定的文本中识别并提取出最相关的标题或主要内容描述，并直接返回结果，不添加任何额外的格式或说明。
+
+## 指令：
+
+1. 仔细分析给定的{{input}}，寻找表示视频或文章主要内容的关键句子或短语。
+2. 如果能识别出平台名称，使用最常见、最正式的名称。例如：
+   - 使用平台的官方中文名称（如果有）
+   - 避免使用缩写或非正式的别称
+   - 保持名称的一致性，每次对同一平台使用相同的名称
+3. 提取出最能概括内容主题的句子或短语。
+4. 如果存在多个可能的标题，选择最完整、最有信息量的一个。
+5. 直接返回提取出的标题，不要添加任何解释、格式或额外的评论。
+6. 不要使用引号或其他标点符号包裹提取的标题。
+
+现在，请根据以上指令处理给定的文本，并直接提取出最相关的标题或主要内容描述。
+```
+
+**5. 测试大模型节点**
+
+分别拿抖音、B站2个视频链接测试下。
+
+![抖音链接提取](https://github.com/user-attachments/assets/de224f15-000d-4f14-9a48-e612ee2eddd2)
+
+![哔哩哔哩链接提取](https://github.com/user-attachments/assets/8d4734f6-ace0-43b8-a5de-78adb771cb69)
+
+截止这里，我们的工作流应该如图所示。
+![整体图](https://github.com/user-attachments/assets/6e75a4f8-12c6-4945-af07-ced93058f330)
+
+接下来进行第2个```if选择器```的```else```情况处理——————处理只有Url地址的分享。
 
 
-## "视频"分支-提取标题
+## 七、"视频"分支---只有url地址的分享处理
 
-新建一个
+
+
+
 
