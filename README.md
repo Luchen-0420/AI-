@@ -1,4 +1,4 @@
-![1727235535881](https://github.com/user-attachments/assets/3fa3bf3e-8314-4f18-b753-d3d947aafd03)# AI·个人知识收藏小助手
+# AI·个人知识收藏小助手
 手把手带你用coze从0实现一个AI·收藏助手，并接入飞书文档+微信公众号，让你随时随地都能无感收藏+推荐阅读+关键词灵感记录。
 
 # 前情概要                                                          
@@ -174,7 +174,7 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 判断是否要进行链接提取，我们需要加一个boolean值的变量作为判断。
 
-![新增输入变量](https://github.com/user-attachments/assets/d8cb5faa-4506-48ae-9695-937f16c36f8c)
+![新增输入变量](https://github.com/user-attachments/assets/3fa3bf3e-8314-4f18-b753-d3d947aafd03)
 
 
 ## 四、判断体裁
@@ -185,8 +185,7 @@ https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 
 ![节点配置](https://github.com/user-attachments/assets/bbac71ee-223d-448a-b7bd-45f222769a7e)
 
-## 五、选择是否需要提取url地址
-
+## 五、视频类--选择是否需要提取url地址
 
 没有直接默认全部提取是因为，有的分享链接包含了视频标题信息，有的只有url地址（比如youtube)。
 
@@ -299,6 +298,8 @@ async def main(args):
 
 **5. 测试大模型节点**
 
+**测试单个节点时，可以把"引用"改为"输入"，下面涉及的所有单个节点测试，我就不赘述这句了。**
+
 分别拿抖音、B站2个视频链接测试下。
 
 ![抖音链接提取](https://github.com/user-attachments/assets/de224f15-000d-4f14-9a48-e612ee2eddd2)
@@ -308,12 +309,102 @@ async def main(args):
 截止这里，我们的工作流应该如图所示。
 ![整体图](https://github.com/user-attachments/assets/6e75a4f8-12c6-4945-af07-ced93058f330)
 
-接下来进行第2个```if选择器```的```else```情况处理——————处理只有Url地址的分享。
+接下来进行第2个```if选择器```的```else```情况处理————处理只有Url地址的分享。
 
 
 ## 七、"视频"分支---只有url地址的分享处理
 
+对只有url地址的分享链接，只做提取平台处理，复制```第六步配置过的大模型节点```，做提示词修改和```删除```title输出变量。
+
+![节点配置](https://github.com/user-attachments/assets/a718a4e4-ef7a-49f2-8332-8bc343cf81d6)
+
+**1. 提示词**
+
+```
+## 指令：
+1. 仔细分析给定的{{input}}，识别出平台名称，使用最常见、最正式的名称。例如：
+   - 使用平台的官方中文名称（如果有）
+   - 避免使用缩写或非正式的别称
+   - 保持名称的一致性，每次对同一平台使用相同的名称
+2. 直接返回平台名称，不要添加任何解释、格式或额外的评论。
+```
+
+**2. 测试大模型节点**
+
+![youtube分享链接测试](https://github.com/user-attachments/assets/418cd5ca-08ff-49f0-87d3-1170f875961c)
 
 
+截止这里，对```视频类```链接处理情况都已经完成。工作流整体如图所示：
+
+![整体图](https://github.com/user-attachments/assets/53722d53-f047-465f-a12a-e960787da7c8)
+
+## 八、图文类--是否需要提取url地址
+
+对图文类的处理主要有：
+
+1. 提取出有效url地址
+2. 通过插件爬取有效内容进行对应表格列填充
+
+同样，图文类分享链接格式也分两种：标准、不标准。插件可以对图文类进行有效内容爬取。所以这里我偷个懒**不写if选择器**，所有的链接输入进来后统一进行```提取有效url地址```操作。你也可以自己加一个```if选择器```，像```视频类```部分处理。
 
 
+## 九、图文类--提取有效url地址
+
+复制```第六步```的**代码节点**，```删除```代码中**针对抖音链接处理**的代码如下：
+
+```
+async def main(args):
+    params = args['params']
+    share_link = params['input']
+
+    # 查找 "http://" 或 "https://" 的起始位置
+    start = share_link.find("http://")
+    if start == -1:
+        start = share_link.find("https://")
+    
+    if start != -1:
+        # 查找 URL 末尾的空格、换行符、逗号、句号等作为终止位置
+        end = start  # 初始化结束位置为起始位置
+        while end < len(share_link) and share_link[end] not in [" ", "\n", ",", "。", "，", "？"]:
+            end += 1
+
+        # 截取 URL
+        url = share_link[start:end].strip()
+    else:
+        url = "没有找到有效链接"
+    
+    return {"url": url}
+
+```
+
+**测试节点**
+
+![小红书图文链接测试](https://github.com/user-attachments/assets/25707da5-6b81-4caf-872a-d41b77df2e59)
+
+## 九、图文类--插件爬取内容
+
+**1. 添加jina-reader插件**
+
+![添加插件](https://github.com/user-attachments/assets/2dae318a-f550-425d-b71a-ac9fcd435d41)
+
+![连线](https://github.com/user-attachments/assets/d7a221dc-133c-4556-bf6e-e612e201a9a1)
+
+**2. 测试插件**
+
+![内容](https://github.com/user-attachments/assets/53137da1-a784-432e-9e27-9612459aed4d)
+
+![标题](https://github.com/user-attachments/assets/7dec405c-561f-48d3-bf1f-1629e5ac0d75)
+
+回过头去看我们设计的表元素，还差一个收集日期。
+
+![变量分类](https://github.com/user-attachments/assets/8baf5243-1045-4a42-b957-e6f27cdf48cc)
+
+## 十、图文类--收集日期插件
+
+不管是图文还是视频，我们都要记录时间，所以插件位置放在if判断前，如下图所示。
+
+![添加日期插件](https://github.com/user-attachments/assets/2cdaa433-4e77-42d9-a59f-5c2303d8b91a)
+
+![放置位置](https://github.com/user-attachments/assets/d6c6cd4d-1a28-443e-8975-c98878c990ce)
+
+## 十一、数据格式化并写入飞书多维表格
