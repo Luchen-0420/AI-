@@ -408,3 +408,14 @@ async def main(args):
 ![放置位置](https://github.com/user-attachments/assets/d6c6cd4d-1a28-443e-8975-c98878c990ce)
 
 ## 十一、数据格式化并写入飞书多维表格
+
+**1. 新建飞书多维表格插件**
+
+插件市场找到```飞书多维表格```添加```add_records```。可以看到2个必须填写参数。
+
+**app_token：** 路径参数
+
+**records：** 要插入的内容，json格式
+
+![多维表格add_records](https://github.com/user-attachments/assets/875da969-153f-43f7-b055-c51df5da3413)
+
