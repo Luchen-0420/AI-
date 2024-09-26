@@ -399,6 +399,17 @@ async def main(args):
 
 ![变量分类](https://github.com/user-attachments/assets/8baf5243-1045-4a42-b957-e6f27cdf48cc)
 
+## 十、图文类--对爬取内容进行长度处理
+
+大模型设置输入输出长度是有一定的限制的，爬取的内容太长作为输入会出现报错，本部分只能针对中文篇幅>英文篇幅的文章进行。
+
+**1. 添加代码节点**
+
+
+
+
+
+
 ## 十、图文类--收集日期插件
 
 不管是图文还是视频，我们都要记录时间，所以插件位置放在if判断前，如下图所示。
@@ -413,9 +424,34 @@ async def main(args):
 
 插件市场找到```飞书多维表格```添加```add_records```。可以看到2个必须填写参数。
 
-**app_token：** 路径参数
+```app_token：``` 路径参数
 
-**records：** 要插入的内容，json格式
+```records：``` 插入记录，json格式
 
-![多维表格add_records](https://github.com/user-attachments/assets/875da969-153f-43f7-b055-c51df5da3413)
+![插入add_records插件](https://github.com/user-attachments/assets/bdf1e598-b430-46c5-8d51-bf62a6adb88f)
+
+![records字段](https://github.com/user-attachments/assets/332651b6-311f-48b8-84c5-e837594b69e4)
+
+**2. 设置app_token**
+
+为了更方便```切换```文档，这里不采取在工作流内固定，选择从外部bot定义一个变量传递给工作流。
+
+**外部bot设置变量**
+
+添加变量```article_url```
+
+![添加变量1](https://github.com/user-attachments/assets/44e954dc-ad16-4941-be05-65fef9887952)
+
+![添加变量2](https://github.com/user-attachments/assets/f8f0f5cf-73e6-4136-94e9-2988c4da2c80)
+
+**返回工作流并引入**
+
+![添加变量节点](https://github.com/user-attachments/assets/24620777-acf9-4977-9ecb-64c11be6b077)
+
+设置```从bot获取变量值```
+
+![从bot获取变量值](https://github.com/user-attachments/assets/1eb61745-4f3d-48a1-ab9f-ef09ae4d5e4f)
+
+**3. **
+
 
