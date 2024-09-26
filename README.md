@@ -401,13 +401,78 @@ async def main(args):
 
 ## 十、图文类--对爬取内容进行长度处理
 
-大模型设置输入输出长度是有一定的限制的，爬取的内容太长作为输入会出现报错，本部分只能针对中文篇幅>英文篇幅的文章进行。
+大模型设置输入输出长度是有一定的限制的，爬取的内容太长作为输入会出现报错，我们要做一个处理。
 
-**1. 添加代码节点**
+找了2篇公众号文章，一篇长篇幅：```万字长文：OpenAI 发展史```；一篇带有emoji表情```MiniCPM CookBook：MiniCPM端侧系列模型入门指南```
+
+jina-reader插件返回结果如下（只截图一部分内容贴出）：
+
+```
+Weixin Official Accounts Platform\n===============\n\n             \n\n \n\n![Image 1: cover_image](https://mmbiz.qpic.cn/mmbiz_jpg/90Kxd0FAJJdtFreOP5nfzhN65PIZZYpCbceEJ5AbLJGMeMBCNeVZibTVycngkY5JvnsHauiaRdWTJxecxLB5SyVg/0?wx_fmt=jpeg)\n\n万字长文：OpenAI 发展史\n===============\n\nOriginal lencx [浮之静](javascript:void\\(0\\);)\n\n![Image 2](https://mmbiz.qpic.cn/mmbiz_png/90Kxd0FAJJdtFreOP5nfzhN65PIZZYpCkILtaL8ibxJ27uG6y0hbQFMWeSW2rsu2PsQtdSzmLxGAicwN9ZPu7gZw/640?wx_fmt=png&from=appmsg)\n\n在这篇文章正式开始前，我想先给个相关阅读，主要是我也没想到《[OpenAI 系列](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MzIzNjE2NTI3NQ==&action=getalbum&album_id=2788323337876799489#wechat_redirect)》我已经写这么多内容。写得越多，了解越深，感慨也越多。话又说回来，\n\n*   [一文读懂 OpenAI](http://mp.weixin.qq.com/s?__biz=MzIzNjE2NTI3NQ==&mid=2247485662&idx=1&sn=b9a9f198b5536c84d94134e0b33c012e&chksm=e8dd492adfaac03c5ec3455926e9597b633c1f2c6ee2dc3e159c72ed070ff7ab237a068615c4&scene=21#wechat_redirect)\n    \n*   [OpenAI 大地震：Sam Altman 和 Greg Brockman 离职，微软加强与 OpenAI 合作！](http://mp.weixin.qq.com/s?__biz=MzIzNjE2NTI3NQ==&mid=2247488090&idx=1&sn=9fa295ec7ecf15e2070cfe53bbbe591c&chksm=e8dd53aedfaadab88941d58c9143e148f4358210f4c52498134f4d9bef50776c297e831cc519&scene=21#wechat_redirect)\n    \n*   [没有员工，OpenAI 什么也不是！](http://mp.weixin.qq.com/s?
+```
+
+```
+📘 **MiniCPM CookBook** 是一个集合了面壁「小钢炮」MiniCPM**推理、量化、边端部署、微调、应用、技术报告**等六大主题的开源仓库。旨在帮助开发者们更好地理解和应用MiniCPM模型。\n\n🔍 推理：快速了解如何在不同平台上运行MiniCPM模型，实现更高效的推理。\n\n🔗 量化：探索如何通过量化技术优化模型大小和性能，以适应资源受限的设备。\n\n🌐 边端部署：将MiniCPM模型部署到各种边缘设备上。\n\n🔄 微调：学习如何根据特定需求调整和优化MiniCPM模型。\n\n🛠️ 应用：发现MiniCPM模型在不同领域的应用案例，有趣好玩且实用！\n\n📄 技术报告：深入了解MiniCPM模型的技
+```
+
+可以看出jina-reader返回的是markdown格式。
+
+**1. 思路**
+
+1. 去除markdown格式、emoji表情
+2. 截取前1500字
+3. 输出原始字符数和去除后的字符是，看下对比
+
+```
+async def main(args: Args) -> Output: 
+    params = args.params
+    content = params.get("input", "")
+    
+    # 1. 字符统计
+    char_count = len(content)
+    
+    # 2. 去除Markdown格式
+    import re  # 这里假设允许使用re模块
+    stripped_content = re.sub(r'\*\*.*?\*\*|__.*?__|`.*?`|#.*?\n|\[.*?\]\(.*?\)', '', content)
+    
+    # 3. 去除Markdown后的字符统计
+    stripped_char_count = len(stripped_content)
+
+    # 4. 正则表达式匹配emoji字符
+    emoji_pattern = re.compile("["
+                           u"\U0001F600-\U0001F64F"  # emoticons
+                           u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                           u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                           u"\U0001F700-\U0001F77F"  # alchemical symbols
+                           u"\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
+                           u"\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
+                           u"\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+                           u"\U0001FA00-\U0001FA6F"  # Chess Symbols
+                           u"\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
+                           u"\U00002702-\U000027B0"  # Dingbats
+                           "]+", flags=re.UNICODE)
+    
+    stripped_content = emoji_pattern.sub(r'', stripped_content)
+
+    stripped_content = re.sub(r'\n+', '\n', stripped_content)  # 替换多个换行符为一个换行符
+    stripped_content = stripped_content.strip()  # 去除首尾空白字符
+
+    # 5. 截取前1500字
+    stripped_content = stripped_content[:1500] 
+    
+    ret: Output = {
+        "content": stripped_content,
+        "char_count": char_count,
+        "stripped_char_count": stripped_char_count
+    }
+    return ret
+```
+
+**2. 测试结果**
 
 
 
-
+![emoji文处理结果](https://github.com/user-attachments/assets/35a19d6a-bb89-4559-8c4b-fc548a0ca0f4)
 
 
 ## 十、图文类--收集日期插件
