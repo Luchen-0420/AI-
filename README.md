@@ -403,78 +403,78 @@ async def main(args):
 
 大模型设置输入输出长度是有一定的限制的，爬取的内容太长作为输入会出现报错，我们要做一个处理。
 
-找了2篇公众号文章，一篇长篇幅：```万字长文：OpenAI 发展史```；一篇带有emoji表情```MiniCPM CookBook：MiniCPM端侧系列模型入门指南```
+找了一篇长篇幅公众号文章：```万字长文：OpenAI 发展史```
 
-jina-reader插件返回结果如下（只截图一部分内容贴出）：
+jina-reader插件返回结果如下（只截取一部分内容贴出），可以看出它是一个markdown格式：
 
 ```
 Weixin Official Accounts Platform\n===============\n\n             \n\n \n\n![Image 1: cover_image](https://mmbiz.qpic.cn/mmbiz_jpg/90Kxd0FAJJdtFreOP5nfzhN65PIZZYpCbceEJ5AbLJGMeMBCNeVZibTVycngkY5JvnsHauiaRdWTJxecxLB5SyVg/0?wx_fmt=jpeg)\n\n万字长文：OpenAI 发展史\n===============\n\nOriginal lencx [浮之静](javascript:void\\(0\\);)\n\n![Image 2](https://mmbiz.qpic.cn/mmbiz_png/90Kxd0FAJJdtFreOP5nfzhN65PIZZYpCkILtaL8ibxJ27uG6y0hbQFMWeSW2rsu2PsQtdSzmLxGAicwN9ZPu7gZw/640?wx_fmt=png&from=appmsg)\n\n在这篇文章正式开始前，我想先给个相关阅读，主要是我也没想到《[OpenAI 系列](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MzIzNjE2NTI3NQ==&action=getalbum&album_id=2788323337876799489#wechat_redirect)》我已经写这么多内容。写得越多，了解越深，感慨也越多。话又说回来，\n\n*   [一文读懂 OpenAI](http://mp.weixin.qq.com/s?__biz=MzIzNjE2NTI3NQ==&mid=2247485662&idx=1&sn=b9a9f198b5536c84d94134e0b33c012e&chksm=e8dd492adfaac03c5ec3455926e9597b633c1f2c6ee2dc3e159c72ed070ff7ab237a068615c4&scene=21#wechat_redirect)\n    \n*   [OpenAI 大地震：Sam Altman 和 Greg Brockman 离职，微软加强与 OpenAI 合作！](http://mp.weixin.qq.com/s?__biz=MzIzNjE2NTI3NQ==&mid=2247488090&idx=1&sn=9fa295ec7ecf15e2070cfe53bbbe591c&chksm=e8dd53aedfaadab88941d58c9143e148f4358210f4c52498134f4d9bef50776c297e831cc519&scene=21#wechat_redirect)\n    \n*   [没有员工，OpenAI 什么也不是！](http://mp.weixin.qq.com/s?
 ```
 
-```
-📘 **MiniCPM CookBook** 是一个集合了面壁「小钢炮」MiniCPM**推理、量化、边端部署、微调、应用、技术报告**等六大主题的开源仓库。旨在帮助开发者们更好地理解和应用MiniCPM模型。\n\n🔍 推理：快速了解如何在不同平台上运行MiniCPM模型，实现更高效的推理。\n\n🔗 量化：探索如何通过量化技术优化模型大小和性能，以适应资源受限的设备。\n\n🌐 边端部署：将MiniCPM模型部署到各种边缘设备上。\n\n🔄 微调：学习如何根据特定需求调整和优化MiniCPM模型。\n\n🛠️ 应用：发现MiniCPM模型在不同领域的应用案例，有趣好玩且实用！\n\n📄 技术报告：深入了解MiniCPM模型的技
-```
-
-可以看出jina-reader返回的是markdown格式。
-
 **1. 思路**
 
-1. 去除markdown格式、emoji表情
-2. 截取前1500字
+1. 去除markdown格式（包括超链接、图片、符号等）
+2. 合并换行符处理、去除首尾空白字符、去除连续的横线与等号
 3. 输出原始字符数和去除后的字符是，看下对比
+4. 截取前5000字（也可以少放点）
 
 ```
-async def main(args: Args) -> Output: 
+async def main(args: Args) -> Output:
+    import re
     params = args.params
-    content = params.get("input", "")
-    
-    # 1. 字符统计
-    char_count = len(content)
-    
-    # 2. 去除Markdown格式
-    import re  # 这里假设允许使用re模块
-    stripped_content = re.sub(r'\*\*.*?\*\*|__.*?__|`.*?`|#.*?\n|\[.*?\]\(.*?\)', '', content)
-    
-    # 3. 去除Markdown后的字符统计
-    stripped_char_count = len(stripped_content)
-
-    # 4. 正则表达式匹配emoji字符
-    emoji_pattern = re.compile("["
-                           u"\U0001F600-\U0001F64F"  # emoticons
-                           u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                           u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                           u"\U0001F700-\U0001F77F"  # alchemical symbols
-                           u"\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
-                           u"\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
-                           u"\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
-                           u"\U0001FA00-\U0001FA6F"  # Chess Symbols
-                           u"\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
-                           u"\U00002702-\U000027B0"  # Dingbats
-                           "]+", flags=re.UNICODE)
-    
-    stripped_content = emoji_pattern.sub(r'', stripped_content)
-
-    stripped_content = re.sub(r'\n+', '\n', stripped_content)  # 替换多个换行符为一个换行符
-    stripped_content = stripped_content.strip()  # 去除首尾空白字符
-
-    # 5. 截取前1500字
-    stripped_content = stripped_content[:1500] 
-    
     ret: Output = {
-        "content": stripped_content,
-        "char_count": char_count,
-        "stripped_char_count": stripped_char_count
+        "content": []
     }
+
+    # 1. 统计爬取内容的字符数
+    raw_content = params.get("content", "")
+    original_char_count = len(raw_content)
+
+    # 2. 使用正则表达式将 Markdown 超链接和图片部分进行处理
+    def markdown_to_text(md: str) -> str:
+        # 转换 Markdown 中的超链接格式 [title](url) 为 title
+        md = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', md)
+
+        # 删除 Markdown 中的图片格式 ![alt](url)
+        md = re.sub(r'!\[.*?\]\(.*?\)', '', md)
+
+        # 删除多余的 Markdown 标记，比如 `#`, `*`, `-` 等
+        md = re.sub(r'[#*`-]', '', md)
+
+        # 替换多重换行符为单个换行符
+        md = re.sub(r'\n+', '\n', md)
+
+        return md.strip()
+
+    plain_text = markdown_to_text(raw_content)
+
+    # 3. 合并换行符处理、去除首尾空白字符、去除连续的横线与等号
+    stripped_content = re.sub(r'-{2,}', '', plain_text)
+    stripped_content = re.sub(r'={2,}', '', plain_text)  # 去除连续的等号
+    stripped_content = re.sub(r'\n+', '\n', plain_text).strip()
+
+    # 4. 去除 Markdown 后的字符统计
+    clean_char_count = len(plain_text)
+
+    # 5. 截取前5000字
+
+    stripped_content = plain_text[:5000] 
+
+    # 将结果封装到列表中
+    ret["content"].append({
+        "original_char_count": original_char_count,
+        "clean_char_count": clean_char_count,
+        "plain_text": stripped_content
+    })
+
     return ret
+
+
 ```
 
 **2. 测试结果**
 
-![1727407542245](https://github.com/user-attachments/assets/692a8ac2-d861-464e-9df4-ef5b192d8560)
-
-
-![emoji文处理结果](https://github.com/user-attachments/assets/35a19d6a-bb89-4559-8c4b-fc548a0ca0f4)
-
+![长文章处理结果](https://github.com/user-attachments/assets/692a8ac2-d861-464e-9df4-ef5b192d8560)
 
 ## 十、图文类--收集日期插件
 
@@ -504,11 +504,11 @@ async def main(args: Args) -> Output:
 
 **外部bot设置变量**
 
-添加变量```article_url```
+先复制飞书表格地址，再添加变量```article_url```，设置默认值为飞书表格地址。
 
-![添加变量1](https://github.com/user-attachments/assets/44e954dc-ad16-4941-be05-65fef9887952)
+![添加变量1](https://github.com/user-attachments/assets/4427172a-ea71-4dbb-9034-61b9d0f36703)
 
-![添加变量2](https://github.com/user-attachments/assets/f8f0f5cf-73e6-4136-94e9-2988c4da2c80)
+![添加变量2](https://github.com/user-attachments/assets/ae5dae32-bd15-4ca9-8ab4-2f3c19470a98)
 
 **返回工作流并引入**
 
@@ -518,6 +518,112 @@ async def main(args: Args) -> Output:
 
 ![从bot获取变量值](https://github.com/user-attachments/assets/1eb61745-4f3d-48a1-ab9f-ef09ae4d5e4f)
 
-**3. **
+**连线**
+
+因为它和日期一样，无论是图文还是视频都要用到，所以我们把它放到```判断体裁节点的前面```。
+
+![连线](https://github.com/user-attachments/assets/93c08e3f-47a5-4521-9bd0-f2e7bc83b7f0)
+
+**3. 对内容提炼**
+
+经过jina-reader+python代码处理过的内容还需要一轮大语言模型来帮我们用精简、通顺的文字来总结。
+
+**大模型配置**
+
+添加大模型节点并配置。虽然截取5000字，篇幅覆盖大多数公众号文章和小红书图文，但是不乏万字长文，加上，我们是要自己对文章进行阅读思考，不要过分依赖AI来阅读总结。所以用到大模型处理的只有2个部分内容：
+
+1. 生成摘要
+2. 辨别平台名称，保持一致性
+
+![配置](https://github.com/user-attachments/assets/c5aac88b-8aa6-4515-a8f2-79bb1a93d6de)
+
+```提示词```
+
+```
+# 任务
+根据{{input}}，生成对应信息
+ 
+# 输出要求
+summary：捕捉内容主题、阅读价值，生成一段简洁而全面的摘要
+siteName：只需要回答{{url}}归属什么平台，不用额外解释。使用最常见、最正式的名称。例如：
+   - 使用平台的官方中文名称（如果有）
+   - 避免使用缩写或非正式的别称
+   - 保持名称的一致性，每次对同一平台使用相同的名称
+```
+
+**节点测试**
+
+![公众号长文](https://github.com/user-attachments/assets/95387e19-adfa-42de-a1c9-a2704aa11333)
+
+![小红书图文](https://github.com/user-attachments/assets/2bba4fb4-4e91-4785-8ed6-f34ec04a70a0)
+
+
+**4. 拼接表格所需信息并json序列化**
+
+我们需要拼接的信息如下：
+
+1. 标题：jina-reader输出
+2. 链接：jina-reader输出
+3. 摘要：大模型节点输出
+4. 来源：大模型节点输出
+5. 体裁：开始节点输入
+6. tag：开始节点输入
+7. 状态：固定值（无需定义输入）
+8. 收集日期：日期插件
+9. 收藏原因：开始节点输入
+
+**代码节点**
+
+这里就没什么逻辑了，选择```javascript```来写而不是python，代码比较简单。
+
+```js代码```
+
+```
+async function main({ params }: Args): Promise<Output> {
+    const fieldsMap = {
+        "标题": params.title,
+        "链接": params.url,
+        "摘要": params.summary,
+        "来源": params.siteName,
+        "体裁": params.genre,
+        "tag":  params.tag,
+        "状态": "未阅读",
+        "收集日期": params.date,
+        "收藏原因": params.reason,
+    };
+
+    const fields = JSON.stringify(fieldsMap);
+    const ret = {
+        "output": {
+            "fileds": fields
+        }
+    };
+
+    return ret;
+}
+```
+
+**测试结果**
+
+![测试结果](https://github.com/user-attachments/assets/8ee3b4a7-f37b-4145-b2a1-69d5641978b7)
+
+**5. 输出到飞书表格**
+
+与第一步的飞书多维表格插件连线，配置完成后，连接结束节点。测试看是否输出到表格。
+
+![连线图](https://github.com/user-attachments/assets/63254d9c-be6c-48c3-9926-4f04db17a5f8)
+
+**测试**
+
+```小红书图文测试```
+
+![输入](https://github.com/user-attachments/assets/3cd066bc-1635-459b-979e-953f37c1ea2d)
+
+第一次需要授权，复制里面完整的网址到浏览器内进行授权
+
+![授权](https://github.com/user-attachments/assets/3ef21292-67ba-4c9a-b6bb-97c834bb696b)
+
+![授权页面](https://github.com/user-attachments/assets/3f92be86-0073-4fbc-af96-cf90801f537d)
+
 
 
