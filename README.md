@@ -470,6 +470,7 @@ async def main(args: Args) -> Output:
 
 **2. 测试结果**
 
+![1727407542245](https://github.com/user-attachments/assets/692a8ac2-d861-464e-9df4-ef5b192d8560)
 
 
 ![emoji文处理结果](https://github.com/user-attachments/assets/35a19d6a-bb89-4559-8c4b-fc548a0ca0f4)
