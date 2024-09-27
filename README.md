@@ -314,9 +314,9 @@ async def main(args):
 
 ## 七、"视频"分支---只有url地址的分享处理
 
-对只有url地址的分享链接，只做提取平台处理，复制```第六步配置过的大模型节点```，做提示词修改和```删除```title输出变量。
+对只有url地址的分享链接，做提取平台处理和对收藏理由进行提炼大概标题，复制```第六步配置过的大模型节点```，做提示词修改。
 
-![节点配置](https://github.com/user-attachments/assets/a718a4e4-ef7a-49f2-8332-8bc343cf81d6)
+![配置信息](https://github.com/user-attachments/assets/4e3f67d5-8eba-46b9-884a-0685e80603ad)
 
 **1. 提示词**
 
@@ -327,11 +327,14 @@ async def main(args):
    - 避免使用缩写或非正式的别称
    - 保持名称的一致性，每次对同一平台使用相同的名称
 2. 直接返回平台名称，不要添加任何解释、格式或额外的评论。
+3.仔细分析给定的 {{reason}}，提炼出不大于10个字的标题
 ```
 
 **2. 测试大模型节点**
 
-![youtube分享链接测试](https://github.com/user-attachments/assets/418cd5ca-08ff-49f0-87d3-1170f875961c)
+![youtube测试1](https://github.com/user-attachments/assets/3975c5f7-d948-4b6a-ba3b-49c380f7df1b)
+
+![youtube测试2](https://github.com/user-attachments/assets/15a1b71b-b624-4651-8825-fae583c0e55b)
 
 
 截止这里，对```视频类```链接处理情况都已经完成。工作流整体如图所示：
@@ -625,5 +628,67 @@ async function main({ params }: Args): Promise<Output> {
 
 ![授权页面](https://github.com/user-attachments/assets/3f92be86-0073-4fbc-af96-cf90801f537d)
 
+**记录新增成功**
 
+![添加成功](https://github.com/user-attachments/assets/68b53a79-fcdc-4b44-8a5f-66dd92780681)
 
+![飞书表格](https://github.com/user-attachments/assets/192e611e-65e6-48c8-a915-25ff53707e9c)
+
+**画册视图**
+
+可以设置画册视图来更好地查看
+
+![新建画册视图](https://github.com/user-attachments/assets/d3578f93-81f6-4468-b3ba-cb33c8d7e19c)
+
+![画册](https://github.com/user-attachments/assets/2c007f57-1a84-41ff-b84f-ac737108bbfc)
+
+## 十二、对视频类进行写入飞书表格
+
+```截止第七步```我们对视频类的情况已经做了处理，现在整个工作流的页面应该如图所示，接下来我们要对视频类的完成json序列化、写入飞书表格操作：
+
+![整体图](https://github.com/user-attachments/assets/f1d21861-994f-4727-9fae-2ac7a962a3c7)
+
+**1. json序列化**
+
+```复制```图文类的json序列化代码节点进行修改。
+
+```
+async function main({ params }: Args): Promise<Output> {
+    const fieldsMap = {
+        "标题": params.title,
+        "链接": params.url,
+        "摘要": "",
+        "来源": params.siteName,
+        "体裁": params.genre,
+        "tag":  params.tag,
+        "状态": "未阅读",
+        "收集日期": params.date,
+        "收藏原因": params.reason,
+    };
+
+    // 构建 fields 对象，符合你的格式要求
+    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+    }, {});
+
+    const ret = {
+        output: [
+            { fields }
+        ]
+    };
+
+    return ret;
+}
+
+```
+
+**2. 写入飞书表格**
+
+复制图文类的```写入飞书表格```节点，并连接```结束```节点。
+
+![配置](https://github.com/user-attachments/assets/1c1b9601-ffcb-4c54-8735-bced0d4992d3)
+
+**测试**
+
+视频类逻辑需要修改，做标题抽取的大模型节点只能使用一个
