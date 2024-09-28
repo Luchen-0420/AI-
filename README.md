@@ -661,9 +661,9 @@ async function main({ params }: Args): Promise<Output> {
 
 增加```代码节点```用来统一if选择器分支出来的输出。
 
-![连线图](https://github.com/user-attachments/assets/7a5a6eb0-2158-4c8b-a6b5-d7bed95c7c8f)
+![先前的整体图](https://github.com/user-attachments/assets/7a5a6eb0-2158-4c8b-a6b5-d7bed95c7c8f)
 
-![配置节点](https://github.com/user-attachments/assets/4575d934-72b3-40a9-a99f-4bc0de46cb74)
+![配置图](https://github.com/user-attachments/assets/037ada01-f9dc-42b1-a7dd-f2c25d5bbb22)
 
 ```代码节点```如下：
 
@@ -671,24 +671,25 @@ async function main({ params }: Args): Promise<Output> {
 async function main({ params }: Args): Promise<Output> {
     console.log('params received:', params); // 打印 params 对象查看实际值
 
-    let ret; 
+    let ret; // 在外部声明 ret 变量
 
     if(params.handle){
         ret = {
-            "title": params.t_title,
-            "sitename": params.t_sitename || '' // 如果 t_sitename 为 null 或 undefined，则默认为空字符串
+            "title": params.t_title || '',
+            "sitename": params.t_sitename || '' ,
+            "url": params.t_url || ''
         };
     } else {
         ret = {
-            "title": params.f_title,
-            "sitename": params.f_sitename || '' // 如果 f_sitename 为 null 或 undefined，则默认为空字符串
+            "title": params.f_title || '',
+            "sitename": params.f_sitename || '',
+            "url": params.f_url || ''
         };
     }
+    console.log('ret:', ret); // 打印 ret 变量查看最终结果
     return ret;
 }
 ```
-
-![测试结果](https://github.com/user-attachments/assets/f4b6f7c9-12d9-4887-a3a9-8eacf8296475)
 
 **2. json序列化**
 
@@ -735,5 +736,25 @@ async function main({ params }: Args): Promise<Output> {
 
 ![画册视图](https://github.com/user-attachments/assets/c284eb94-8e81-449e-ad7e-eba157263040)
 
+## 十三、多平台测试
 
+1. 小红书图文链接
+2. 小红书视频链接
+3. 抖音视频链接
+4. b站视频链接
+5. 公众号文章链接
+6. YouTube视频链接
+7. 知乎图文链接
+8. 网站具体内容链接
 
+视频类的节点增加了url输出，明天截图改下
+
+知乎类的不能爬取
+
+![知乎安全验证](https://github.com/user-attachments/assets/c7e5d574-612c-43d2-8078-349f38fa0709)
+
+![表格视图](https://github.com/user-attachments/assets/d8e1dd85-3112-4bf7-ba76-b17750a30bd6)
+
+![画册视图](https://github.com/user-attachments/assets/3ad43dbf-c90c-46e8-9c59-651d35453bff)
+
+## 十四、对知乎文章做额外处理
