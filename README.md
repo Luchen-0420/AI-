@@ -648,7 +648,32 @@ async function main({ params }: Args): Promise<Output> {
 
 ![整体图](https://github.com/user-attachments/assets/f1d21861-994f-4727-9fae-2ac7a962a3c7)
 
-**1. json序列化**
+**1. 对前面节点的输出进行处理**
+
+```
+async function main({ params }: Args): Promise<Output> {
+    console.log('params received:', params); // 打印 params 对象查看实际值
+
+    let ret; 
+
+    if(params.handle){
+        ret = {
+            "title": params.t_title,
+            "sitename": params.t_sitename || '' // 如果 t_sitename 为 null 或 undefined，则默认为空字符串
+        };
+    } else {
+        ret = {
+            "title": params.f_title,
+            "sitename": params.f_sitename || '' // 如果 f_sitename 为 null 或 undefined，则默认为空字符串
+        };
+    }
+    return ret;
+}
+```
+
+![测试结果](https://github.com/user-attachments/assets/f4b6f7c9-12d9-4887-a3a9-8eacf8296475)
+
+**2. json序列化**
 
 ```复制```图文类的json序列化代码节点进行修改。
 
@@ -691,4 +716,11 @@ async function main({ params }: Args): Promise<Output> {
 
 **测试**
 
-视频类逻辑需要修改，做标题抽取的大模型节点只能使用一个
+![写入飞书表格](https://github.com/user-attachments/assets/853a93d2-715a-46be-907c-43ae5e32e18b)
+
+![写入表格成功](https://github.com/user-attachments/assets/17b34b5a-dbca-40ac-a8d9-6d8f394df9c5)
+
+![画册视图](https://github.com/user-attachments/assets/c284eb94-8e81-449e-ad7e-eba157263040)
+
+
+
