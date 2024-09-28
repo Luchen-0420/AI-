@@ -595,11 +595,16 @@ async function main({ params }: Args): Promise<Output> {
         "收藏原因": params.reason,
     };
 
-    const fields = JSON.stringify(fieldsMap);
+    // 构建 fields 对象
+    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+    }, {});
+
     const ret = {
-        "output": {
-            "fileds": fields
-        }
+        output: [
+            { fields }
+        ]
     };
 
     return ret;
@@ -648,7 +653,19 @@ async function main({ params }: Args): Promise<Output> {
 
 ![整体图](https://github.com/user-attachments/assets/f1d21861-994f-4727-9fae-2ac7a962a3c7)
 
+复制```json序列化```、```写入飞书表格节点```。这里我们要把提取的信息（平台、标题）传到```json序列化节点```。
+
+![复制后图](https://github.com/user-attachments/assets/7260232c-f6fe-496d-872a-7de289669db3)
+
 **1. 对前面节点的输出进行处理**
+
+增加```代码节点```用来统一if选择器分支出来的输出。
+
+![连线图](https://github.com/user-attachments/assets/7a5a6eb0-2158-4c8b-a6b5-d7bed95c7c8f)
+
+![配置节点](https://github.com/user-attachments/assets/4575d934-72b3-40a9-a99f-4bc0de46cb74)
+
+```代码节点```如下：
 
 ```
 async function main({ params }: Args): Promise<Output> {
@@ -675,7 +692,7 @@ async function main({ params }: Args): Promise<Output> {
 
 **2. json序列化**
 
-```复制```图文类的json序列化代码节点进行修改。
+```复制```图文类的json序列化代码节点进行修改。代码修改后如下：
 
 ```
 async function main({ params }: Args): Promise<Output> {
@@ -683,7 +700,7 @@ async function main({ params }: Args): Promise<Output> {
         "标题": params.title,
         "链接": params.url,
         "摘要": "",
-        "来源": params.siteName,
+        "来源": params.sitename,
         "体裁": params.genre,
         "tag":  params.tag,
         "状态": "未阅读",
@@ -691,21 +708,17 @@ async function main({ params }: Args): Promise<Output> {
         "收藏原因": params.reason,
     };
 
-    // 构建 fields 对象，符合你的格式要求
-    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-    }, {});
+    // 将 fields 对象转换为字符串
+    const fieldsStr = JSON.stringify(fieldsMap);
 
     const ret = {
         output: [
-            { fields }
+            { fields: fieldsStr }
         ]
     };
 
     return ret;
 }
-
 ```
 
 **2. 写入飞书表格**
