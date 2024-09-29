@@ -1,10 +1,10 @@
-![1727592841404](https://github.com/user-attachments/assets/7ab6a259-c7ec-4445-88da-5205e521be1b)# AI·个人知识收藏小助手
+# AI·个人知识收藏小助手
 手把手带你用coze从0实现一个AI·收藏助手，并接入飞书文档+微信公众号，让你随时随地都能无感收藏+推荐阅读+关键词灵感记录。
 
 # 前情概要                                                          
 
 ## 背景
-
+ 
 1. 太懒，从没统一整理过
 2. 看过就忘，或者收藏=看过，期间产生的思考与灵感未能及时以文本形式保存
 3. 浏览器收藏夹懒得建文件夹按类分类，乱糟糟的，再也不会翻阅，一般只搜索浏览器记录
@@ -805,7 +805,7 @@ async function main({ params }: Args): Promise<Output> {
 
 ![请求示例](https://github.com/user-attachments/assets/7b28059b-8f12-45a4-bc46-d8a187600520)
 
-![代码节点](https://github.com/user-attachments/assets/8a5cd464-f32f-4ad7-8336-1d050f12b8bc)
+![代码节点](https://github.com/user-attachments/assets/7ab6a259-c7ec-4445-88da-5205e521be1b)
 
 复制之前的代码，修改输入选项后，要对keywords进行格式处理
 
