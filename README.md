@@ -14,7 +14,7 @@
 
 ### 想要的功能：
 
-![image](https://github.com/user-attachments/assets/f542ca83-8a4f-4cb6-b0ee-8a2bb288f477)
+![功能清单](https://github.com/user-attachments/assets/f542ca83-8a4f-4cb6-b0ee-8a2bb288f477)
 
 
 ### 思路拆解：
@@ -69,12 +69,12 @@
 
 | 字段名     | 飞书字段类型 | 字段说明                                                                 |
 |------------|---------------|--------------------------------------------------------------------------|
-| 账号id      | 文本        | 作为平台的唯一标识（微信公众号好像没有），在名称修改过的情况下可以通过ID找到 |
-| 账号名称    | 文本         | 账号名称                                                                    |
-| 所属领域    | 单选         | 比如农业、AI等等，一个大的领域范畴                               |
-| 看点关键词  | 多选         | 细分小的领域，账号自己标注的tag或者你赋予它的tag 。比如它属于AI大领域中的文生图、视频生成等等 |
-| 来源       | 单选          | 来自哪个平台，如：b站、小红书、网站等等。后续如果扩展做数据统计时可作为一项分类指标   |
-| 备注       | 文本         | 其他觉得有有必要的理由                                                                |
+| 账号id              | 文本        | 作为平台的唯一标识（微信公众号好像没有），在名称修改过的情况下可以通过ID找到 |
+| 账号名称/网站地址    | 文本         | 账号名称 或 网站地址                                                   |
+| 所属领域         | 单选         | 比如农业、AI等等，一个大的领域范畴                               |
+| 看点关键词       | 多选         | 细分小的领域，账号自己标注的tag或者你赋予它的tag 。比如它属于AI大领域中的文生图、视频生成等等 |
+| 来源             | 单选          | 来自哪个平台，如：b站、小红书、网站等等。后续如果扩展做数据统计时可作为一项分类指标   |
+| 备注             | 文本         | 其他觉得有有必要的理由                                                                |
 
 ![空表示例](https://github.com/user-attachments/assets/c072290a-e586-4101-a156-e9757b9ed5f0)
 
@@ -619,7 +619,7 @@ async function main({ params }: Args): Promise<Output> {
 
 与第一步的飞书多维表格插件连线，配置完成后，连接结束节点。测试看是否输出到表格。
 
-![连线图](https://github.com/user-attachments/assets/63254d9c-be6c-48c3-9926-4f04db17a5f8)
+![连线图](https://github.com/user-attachments/assets/fbed34ab-dd52-45f0-a857-5464b4d2f3a8)
 
 **测试**
 
@@ -663,7 +663,7 @@ async function main({ params }: Args): Promise<Output> {
 
 ![先前的整体图](https://github.com/user-attachments/assets/7a5a6eb0-2158-4c8b-a6b5-d7bed95c7c8f)
 
-![配置图](https://github.com/user-attachments/assets/037ada01-f9dc-42b1-a7dd-f2c25d5bbb22)
+![配置图](https://github.com/user-attachments/assets/0b89602b-6154-441d-9cba-e1097442415c)
 
 ```代码节点```如下：
 
@@ -747,9 +747,7 @@ async function main({ params }: Args): Promise<Output> {
 7. 知乎图文链接
 8. 网站具体内容链接
 
-视频类的节点增加了url输出，明天截图改下
-
-知乎类的不能爬取
+测试到知乎类的，发现有安全验证，爬取不了。
 
 ![知乎安全验证](https://github.com/user-attachments/assets/c7e5d574-612c-43d2-8078-349f38fa0709)
 
@@ -757,4 +755,15 @@ async function main({ params }: Args): Promise<Output> {
 
 ![画册视图](https://github.com/user-attachments/assets/3ad43dbf-c90c-46e8-9c59-651d35453bff)
 
-## 十四、对知乎文章做额外处理
+## （补充）对知乎链接处理
+
+有点写累了这块先简单写下思路，后续不忙了贴完整截图和思路。
+
+思路和上面对视频类的处理思路差不多。它无法爬取内容，我们就只做平台、url、收藏理由、体裁、tag的写入。
+
+在图文分支处理链接节点的后面新增一个对url地址判断的节点，如果包含zhihu，就直接输出"知乎"作为平台名称，节点直接连接```写入飞书表格节点```
+
+# 有效工具、账号、网站收藏工作流搭建
+
+
+
