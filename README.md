@@ -1,4 +1,4 @@
-# AI·个人知识收藏小助手
+![1727592841404](https://github.com/user-attachments/assets/7ab6a259-c7ec-4445-88da-5205e521be1b)# AI·个人知识收藏小助手
 手把手带你用coze从0实现一个AI·收藏助手，并接入飞书文档+微信公众号，让你随时随地都能无感收藏+推荐阅读+关键词灵感记录。
 
 # 前情概要                                                          
@@ -86,11 +86,11 @@
 | 字段名     | 飞书字段类型 | 字段说明                                                                 |
 |------------|---------------|--------------------------------------------------------------------------|
 | 日期       | 文本          | 记录的时间，和第一张表一样，不想做日期处理，才设置文本型 |
-| 记录       | 文本          | 记录脑中所想 或者提醒自己有空要根据什么关键词来查找什么                       |
+| 灵感来源    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考，来自微信群还是来自某个人，还是来自某篇文章，某个网站 | 
 | 类型       | 单选          | 打tag，比如产品设计、职业规划、稍后查询等等                              |
-| 灵感来源    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考 |    
+| 记录    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考，来自微信群还是来自某个人，还是来自某篇文章，某个网站 |
+| 记录    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考，来自微信群还是来自某个人，还是来自某篇文章，某个网站 |
 
-![空表示例](https://github.com/user-attachments/assets/f8bae530-f268-4223-adcc-27dfa63e97e7)
 
 ## 二、coze新建bot、工作流的位置
 
@@ -765,5 +765,86 @@ async function main({ params }: Args): Promise<Output> {
 
 # 有效工具、账号、网站收藏工作流搭建
 
+通过第一个工作流的搭建，一定已经熟悉了大部分操作，下面几个工作流搭建的一些简单步骤，我就不截图了。
 
+## 一、新建account_collect工作流
+
+**配置输入节点**
+
+看表格元数据，来决定哪些是自己要手动输入的。每个微信公众号其实都有一段介绍，有空的时候我再仔细翻看下官方文档看看有没有开放的api可以获取。结合下表来看，每个都要手动输入。备注和账号id可为空。
+
+![空表](https://github.com/user-attachments/assets/703f2dda-2eed-436f-b306-6ff0f601cf80)
+
+![配置图](https://github.com/user-attachments/assets/9c55c46b-990a-4f7c-b922-d49e46d4e8d4)
+
+## 二、写入飞书表格
+
+和第一个工作流一样：
+
+1. bot内设置变量
+2. 工作流内获取变量
+3. json序列化输入
+4. 写入飞书表格插件
+5. 测试
+
+**1. bot内设置变量**
+
+新建变量，默认值填写```复制的表格链接```
+
+![bot添加变量](https://github.com/user-attachments/assets/e9eae8c0-ae11-455b-a000-f6ea19c742a5)
+
+**2. 工作流内获取变量**
+
+![变量节点](https://github.com/user-attachments/assets/fa26d779-edb7-455a-bc00-1694e568b4af)
+
+**3. json序列化输入**
+
+添加代码节点，配置输出并测试。
+
+与第一个工作流不同的是，我们设置```看点```是一个多选属性，查看飞书开发文档，格式如下：
+
+![请求示例](https://github.com/user-attachments/assets/7b28059b-8f12-45a4-bc46-d8a187600520)
+
+![代码节点](https://github.com/user-attachments/assets/8a5cd464-f32f-4ad7-8336-1d050f12b8bc)
+
+复制之前的代码，修改输入选项后，要对keywords进行格式处理
+
+```代码```
+
+```
+async function main({ params }: Args): Promise<Output> {
+    const fieldsMap = {
+        "账号id": params.id,
+        "账号名称/网站地址": params.name,
+        "所属领域": params.Affiliation,
+        "看点关键词": params.keyword,
+        "来源": params.sitename,
+        "备注":  params.notes
+    };
+
+    // 构建 fields 对象
+    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+    }, {});
+
+    const ret = {
+        output: [
+            { fields }
+        ]
+    };
+
+    return ret;
+}
+```
+
+**4. 添加飞书表格插件**
+
+![飞书表格写入配置](https://github.com/user-attachments/assets/b964c273-d5d9-4d13-80bb-dc5ca9757995)
+
+**5. 测试**
+
+![表格视图](https://github.com/user-attachments/assets/872fd56f-a95f-45ce-bc49-a2141c7a48ae)
+
+![画册视图](https://github.com/user-attachments/assets/f983913e-83bc-4a7c-bf3f-212023c68761)
 
