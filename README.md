@@ -106,6 +106,7 @@
 
 收藏时我想要爬虫来给我写概要，选择jina-reader插件来测试下以上分类，发现视频类进行爬取其实是不太符合我想要的，所以```视频类只取标题```。
 
+
 ![jina-reader对视频的概要](https://github.com/user-attachments/assets/298b82b9-b454-4d1f-81ef-6bf5b7aa2d6f)
 
 再仔细看各个平台的分享链接形式，有些平台分享链接需要做一个提取```https链接```处理，比如：
