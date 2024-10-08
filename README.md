@@ -106,6 +106,8 @@
 
 收藏时我想要爬虫来给我写概要，选择jina-reader插件来测试下以上分类，发现视频类进行爬取其实是不太符合我想要的，所以```视频类只取标题```。
 
+**另外注意，知乎链接是无法用jina-reader爬取的，本教程不处理知乎类链接**
+
 
 ![jina-reader对视频的概要](https://github.com/user-attachments/assets/298b82b9-b454-4d1f-81ef-6bf5b7aa2d6f)
 
