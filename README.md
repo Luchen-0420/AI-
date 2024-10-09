@@ -53,7 +53,7 @@
 | 摘要       | 文本        | 通篇大概讲了什么，可以由jina-reader插件自动生成                               |
 | 来源       | 单选          | 来自哪个平台，如：b站、小红书、网站等等。后续如果扩展做数据统计时可作为一项分类指标   |
 | 体裁       | 单选         | 图文、视频                                                                |
-| tag       | 单选         | 按领域、功能等做一个划分，也可以称它为某个合集                                |
+| tag       | 多选         | 按领域、功能等做一个划分，也可以称它为某个合集                                |
 | 状态       | 单选         | 已阅读、未阅读                                                             |
 | 收集日期   | 文本        | 写入表格日期，因为飞书时间格式和插件时间格式有出入，我太懒了不想做处理，直接设置文本型 |
 | 收藏原因   | 文本        | 为什么要收录这篇                                                          |
@@ -119,12 +119,6 @@
 93 【大连｜4天21顿❣️人少嘎嘎好吃，本地人推荐‼️ - 马溜达 | 小红书 - 你的生活指南】 😆 lR3gT9A0eAQ5XWn 😆 https://www.xiaohongshu.com/discovery/item/667aacb8000000001e010eb2?source=webshare&xsec_token=AB1e31D0BGnaywnmwX7C37dGKIbrOsxGltreE-BRB1aeE=&xsec_source=pc_share
 ```
 
-```知乎分享链接```：
-
-```
-手搓一个最小的 Agent 系统 — Tiny Agent - RedHerring的文章 - 知乎
-https://zhuanlan.zhihu.com/p/699732624
-```
 
 ```抖音分享链接```：
 
@@ -585,20 +579,19 @@ siteName：只需要回答{{url}}归属什么平台，不用额外解释。使�
 ```js代码```
 
 ```
-async function main({ params }: Args): Promise<Output> {
+async function main({ params }: Args): Promise<Output> { 
     const fieldsMap = {
         "标题": params.title,
         "链接": params.url,
         "摘要": params.summary,
         "来源": params.siteName,
         "体裁": params.genre,
-        "tag":  params.tag,
+        "tag": params.tag.split(/[，、,]/),
         "状态": "未阅读",
         "收集日期": params.date,
         "收藏原因": params.reason,
     };
 
-    // 构建 fields 对象
     const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
         acc[key] = value;
         return acc;
@@ -612,6 +605,7 @@ async function main({ params }: Args): Promise<Output> {
 
     return ret;
 }
+
 ```
 
 **测试结果**
@@ -699,30 +693,33 @@ async function main({ params }: Args): Promise<Output> {
 ```复制```图文类的json序列化代码节点进行修改。代码修改后如下：
 
 ```
-async function main({ params }: Args): Promise<Output> {
+async function main({ params }: Args): Promise<Output> { 
     const fieldsMap = {
         "标题": params.title,
         "链接": params.url,
-        "摘要": "",
-        "来源": params.sitename,
+        "摘要": params.summary,
+        "来源": params.siteName,
         "体裁": params.genre,
-        "tag":  params.tag,
+        "tag": params.tag.split(/[，、,]/),
         "状态": "未阅读",
         "收集日期": params.date,
         "收藏原因": params.reason,
     };
 
-    // 将 fields 对象转换为字符串
-    const fieldsStr = JSON.stringify(fieldsMap);
+    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+    }, {});
 
     const ret = {
         output: [
-            { fields: fieldsStr }
+            { fields }
         ]
     };
 
     return ret;
 }
+
 ```
 
 **2. 写入飞书表格**
@@ -747,24 +744,11 @@ async function main({ params }: Args): Promise<Output> {
 4. b站视频链接
 5. 公众号文章链接
 6. YouTube视频链接
-7. 知乎图文链接
-8. 网站具体内容链接
-
-测试到知乎类的，发现有安全验证，爬取不了。
-
-![知乎安全验证](https://github.com/user-attachments/assets/c7e5d574-612c-43d2-8078-349f38fa0709)
+7.  网站具体内容链接
 
 ![表格视图](https://github.com/user-attachments/assets/d8e1dd85-3112-4bf7-ba76-b17750a30bd6)
 
 ![画册视图](https://github.com/user-attachments/assets/3ad43dbf-c90c-46e8-9c59-651d35453bff)
-
-## （补充）对知乎链接处理
-
-有点写累了这块先简单写下思路，后续不忙了贴完整截图和思路。
-
-思路和上面对视频类的处理思路差不多。它无法爬取内容，我们就只做平台、url、收藏理由、体裁、tag的写入。
-
-在图文分支处理链接节点的后面新增一个对url地址判断的节点，如果包含zhihu，就直接输出"知乎"作为平台名称，节点直接连接```写入飞书表格节点```
 
 # 有效工具、账号、网站收藏工作流搭建
 
@@ -820,7 +804,7 @@ async function main({ params }: Args): Promise<Output> {
         "账号id": params.id,
         "账号名称/网站地址": params.name,
         "所属领域": params.Affiliation,
-        "看点关键词": params.keyword,
+        "看点关键词": params.keyword.split(/[，、,]/),
         "来源": params.sitename,
         "备注":  params.notes
     };
@@ -847,7 +831,75 @@ async function main({ params }: Args): Promise<Output> {
 
 **5. 测试**
 
-![表格视图](https://github.com/user-attachments/assets/872fd56f-a95f-45ce-bc49-a2141c7a48ae)
+![表格视图](https://github.com/user-attachments/assets/9ae3f49f-b2e3-49ba-afe6-d04b84e7c871)
 
-![画册视图](https://github.com/user-attachments/assets/f983913e-83bc-4a7c-bf3f-212023c68761)
+![画册视图](https://github.com/user-attachments/assets/6ad0d28e-6c20-4f00-a79b-f1796a677025)
+
+
+# 随手记工作流搭建
+
+## 一、新建daily_record工作流
+
+看表格元数据，我们需要手动来输入"灵感来源"、"类型"、"记录"、"持续关注"。
+
+![输入参数](https://github.com/user-attachments/assets/1139b705-9a42-40ae-a26a-502bce099519)
+
+## 二、添加变量和时间插件
+
+先到bot里设置表格变量。
+
+![变量设置](https://github.com/user-attachments/assets/5e72d28e-93c1-4532-a8dc-d04ddf1bb7db)
+
+到工作流里分别添加变量、时间获取插件。
+
+
+## 三、格式处理
+
+添加```代码```节点，配置和代码如下：
+
+![配置图](https://github.com/user-attachments/assets/ae89cabf-118d-43f7-b7c9-b018bb0e14ed)
+
+```
+async function main({ params }: Args): Promise<Output> {
+    const fieldsMap = {
+        "日期": params.date,
+        "灵感来源": params.from,
+        "类型": params.genre,
+        "记录": params.record, 
+        "持续关注": params.continue
+    };
+
+    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+    }, {});
+
+    const ret = {
+        output: [
+            { fields }
+        ]
+    };
+
+    return ret;
+}
+```
+
+## 四、写入飞书表格
+
+添加写入飞书表格插件，并设置。
+
+![配置图](https://github.com/user-attachments/assets/fed2c7cf-d3dc-4b88-9331-5917c42c0d51)
+
+## 五、测试
+
+![测试结果](https://github.com/user-attachments/assets/376d1afd-5395-4c71-9356-f853d9939341)
+
+
+# 内容推荐工作流
+
+根据用户输入，在多维表格中检索并匹配，输出符合用户兴趣的内容记录。
+
+## 一、新建search_recommend工作流并配置
+
+
 
