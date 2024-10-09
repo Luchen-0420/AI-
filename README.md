@@ -144,6 +144,121 @@ https://mp.weixin.qq.com/s/d8mvSU77l_xAHKo3gqyPGQ
 https://youtu.be/siHNmXLZ8y4?si=2KwcS5wElJBK4Eva
 ```
 
+## 四、自定义InternLM插件
+
+### 1. 新建插件
+
+![新建插件1](https://github.com/user-attachments/assets/70cb5ed0-f1eb-4cf1-8849-660584294576)
+
+![新建插件2](https://github.com/user-attachments/assets/6ba9f832-e4a3-4ac3-b36b-e9870d94bd7d)
+
+![新建并进入代码编辑页面](https://github.com/user-attachments/assets/b8818b9a-dd99-4b56-b993-7aa6b4d91bf0)
+
+### 2. 编辑插件
+
+**2.1 配置元数据**
+
+仔细阅读[书生浦语的API文档](https://internlm.intern-ai.org.cn/api/document)。其中模型、请求地址、api_key可以固定，我们设置输入prompt和user_request，输出为answer。
+
+![配置元数据](https://github.com/user-attachments/assets/bda7d31b-d2ae-4657-bc1d-319ddfb6ef6a)
+
+**2.2 源码**
+
+修改第14行为你自己的API_KEY
+
+```
+import requests
+from typing import TypedDict, Optional
+
+# 入参
+class Input(TypedDict):
+    prompt: str
+    user_request: str
+
+# 输出
+class Output(TypedDict):
+    answer: str
+
+# 固定的API配置
+API_KEY = "" # 固定API密钥
+API_URL = "https://internlm-chat.intern-ai.org.cn/puyu/api/v1/chat/completions"  # 固定请求地址
+
+def handler(args) -> Output:
+    # 获取输入变量
+    prompt = args.input.prompt
+    user_request = args.input.user_request
+
+    # 调用merge_prompt函数合并提示词和用户要求
+    full_prompt = merge_prompt(prompt, user_request)
+
+    # 调用ask_question函数获取answer
+    answer = ask_question(full_prompt)
+    return {"answer": answer if answer else ""}
+
+def merge_prompt(prompt: str, user_request: str) -> str:
+    """提示词和用户需求拼接处理函数"""
+    # 拼接提示词和用户需求
+    full_prompt = f'{prompt}, 【用户提供的描述】 - {user_request}'
+    return full_prompt
+
+def ask_question(question: str) -> Optional[str]:
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {API_KEY}"
+        }
+
+        data = {
+            "model": "internlm2.5-latest",
+            "messages": [{
+                "role": "user",
+                "content": question
+            }],
+            "n": 1,
+            "temperature": 0.8,
+            "top_p": 0.9
+        }
+        response = requests.post(API_URL, headers=headers, json=data)
+        message = response.json()
+
+        if 'error' not in message:
+            return message['choices'][0]['message']['content']
+        else:
+            print("无法获取模型回答:", message.get('error', 'Unknown error'))
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求错误：{e}")
+        return None
+    except Exception as e:
+        print(f"发生错误: {str(e)}")
+        return None
+```
+
+**2.3 测试**
+
+测试之前先在左下侧安装requests的包。
+
+![测试结果](https://github.com/user-attachments/assets/9d177ce5-8457-435f-bd83-494e5971cb41)
+
+**2.4 发布**
+
+![发布](https://github.com/user-attachments/assets/791e585b-ba92-4b7a-8fbd-79a9d29216e2)
+
+**2.5 在工作流中测试**
+
+新建工作流，并添加我们自定义的插件。
+
+![添加插件](https://github.com/user-attachments/assets/94d0018a-bb9c-4c44-be75-4a3d819ead4e)
+
+进行输入参数设置。
+
+![工作流设置](https://github.com/user-attachments/assets/566c3e49-821b-4f4a-8fca-808431501aaf)
+
+点击右上角测试，进行工作流测试。
+
+![测试结果](https://github.com/user-attachments/assets/d596fadb-eca6-4e39-a8d9-acdb25a2620c)
+
 # 内容收藏工作流搭建
 
 ## 一、功能流程图
