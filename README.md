@@ -532,66 +532,88 @@ Weixin Official Accounts Platform\n===============\n\n             \n\n \n\n![Im
 2. 合并换行符处理、去除首尾空白字符、去除连续的横线与等号
 3. 输出原始字符数和去除后的字符是，看下对比
 4. 截取前5000字（也可以少放点）
+5. 添加jina-reader提取的 URL 到结果中
 
 ```
+import re
+from typing import List, Tuple, Dict, Any
 async def main(args: Args) -> Output:
-    import re
     params = args.params
     ret: Output = {
         "content": []
     }
 
-    # 1. 统计爬取内容的字符数
-    raw_content = params.get("content", "")
+    # 1. 确保获取的参数是字符串
+
+    raw_content = str(params.get("content", {}).get("content", ""))
+    title = str(params.get("content", {}).get("title", ""))
+    url = str(params.get("content", {}).get("url", ""))
+
     original_char_count = len(raw_content)
 
     # 2. 使用正则表达式将 Markdown 超链接和图片部分进行处理
-    def markdown_to_text(md: str) -> str:
-        # 转换 Markdown 中的超链接格式 [title](url) 为 title
+    def markdown_to_text(md: str) -> Tuple[str, List[str]]:
+        urls = re.findall(r'\[.*?\]\((.*?)\)', md)
         md = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', md)
-
-        # 删除 Markdown 中的图片格式 ![alt](url)
         md = re.sub(r'!\[.*?\]\(.*?\)', '', md)
-
-        # 删除多余的 Markdown 标记，比如 `#`, `*`, `-` 等
         md = re.sub(r'[#*`-]', '', md)
-
-        # 替换多重换行符为单个换行符
         md = re.sub(r'\n+', '\n', md)
+        return md.strip(), urls
 
-        return md.strip()
-
-    plain_text = markdown_to_text(raw_content)
+    plain_text, extracted_urls = markdown_to_text(raw_content)
 
     # 3. 合并换行符处理、去除首尾空白字符、去除连续的横线与等号
     stripped_content = re.sub(r'-{2,}', '', plain_text)
-    stripped_content = re.sub(r'={2,}', '', plain_text)  # 去除连续的等号
-    stripped_content = re.sub(r'\n+', '\n', plain_text).strip()
+    stripped_content = re.sub(r'={2,}', '', stripped_content)
+    stripped_content = re.sub(r'\n+', '\n', stripped_content).strip()
 
     # 4. 去除 Markdown 后的字符统计
     clean_char_count = len(plain_text)
 
     # 5. 截取前5000字
+    stripped_content = stripped_content[:5000]
 
-    stripped_content = plain_text[:5000] 
-
-    # 将结果封装到列表中
+    # 6. 添加提取的 URL 到结果中
     ret["content"].append({
         "original_char_count": original_char_count,
         "clean_char_count": clean_char_count,
-        "plain_text": stripped_content
+        "plain_text": stripped_content,
+        "url": url 
     })
 
     return ret
-
-
 ```
 
 **2. 测试结果**
 
 ![长文章处理结果](https://github.com/user-attachments/assets/692a8ac2-d861-464e-9df4-ef5b192d8560)
 
-## 十、图文类--收集日期插件
+## 十一、图文类--大模型进行标题、平台提炼
+
+**1. 大模型提炼**
+
+添加我们发布的internlm_api的插件。prompt输入如下：
+
+```
+# 任务 \n 
+根据用户输入的plain_text，生成对应信息 \n
+# 输出要求\n
+输出参数名只有：summary、siteName \n
+summary：捕捉内容主题、阅读价值，生成一段简洁而全面的摘要 \n
+siteName：只需要回答url归属什么平台，不用额外解释。使用最常见、最正式的名称。例如:
+\n - 使用平台的官方中文名称（如果有）
+\n - 避免使用缩写或非正式的别称
+\n - 保持名称的一致性，每次对同一平台使用相同的名称
+```
+
+![测试结果](https://github.com/user-attachments/assets/83f5e21d-4501-42bc-8033-d84592ca5a9c)
+
+**2. 代码节点提取**
+
+
+
+
+## 十二、图文类--收集日期插件
 
 不管是图文还是视频，我们都要记录时间，所以插件位置放在if判断前，如下图所示。
 
