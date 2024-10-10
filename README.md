@@ -595,23 +595,81 @@ async def main(args: Args) -> Output:
 添加我们发布的internlm_api的插件。prompt输入如下：
 
 ```
-# 任务 \n 
-根据用户输入的plain_text，生成对应信息 \n
-# 输出要求\n
-输出参数名只有：summary、siteName \n
-summary：捕捉内容主题、阅读价值，生成一段简洁而全面的摘要 \n
-siteName：只需要回答url归属什么平台，不用额外解释。使用最常见、最正式的名称。例如:
-\n - 使用平台的官方中文名称（如果有）
-\n - 避免使用缩写或非正式的别称
-\n - 保持名称的一致性，每次对同一平台使用相同的名称
+# 任务
+\n
+根据用户输入的plain_text，生成对应信息 
+\n
+# 输出格式要求
+\n
+直接输出JSON格式，不要使用任何包装或代码块。严格按照以下格式输出，不添加任何其他内容：
+\n
+{
+\n
+  "summary": "在这里填写内容摘要",
+\n
+  "siteName": "在这里填写平台名称"
+\n
+}
+\n
+# 输出内容要求
+\n 
+summary：捕捉内容主题、阅读价值，生成一段简洁而全面的摘要。不要使用"摘要："或类似前缀。
+\n
+siteName：仅回答URL归属的平台名称，不需要额外解释。使用最常见、最正式的名称。具体要求：
+\n
+- 使用平台的官方中文名称（如果有）
+\n
+- 避免使用缩写或非正式的别称
+\n
+- 保持名称的一致性，每次对同一平台使用相同的名称
+\n
+# 重要提醒
+\n
+- 不要使用```json或任何其他代码块标记
+\n
+- 不要将输出包装在"answer"或任何其他字段中
+\n
+- 确保输出的是可以直接被解析的原始JSON
+\n
+- 除了指定的JSON结构外，不要输出任何其他内容
 ```
 
-![测试结果](https://github.com/user-attachments/assets/83f5e21d-4501-42bc-8033-d84592ca5a9c)
+**2. 大模型提炼测试结果**
 
-**2. 代码节点提取**
+![测试结果](https://github.com/user-attachments/assets/74bebd8d-4f12-47be-b7aa-a44ae0ee2573)
 
+**3. 代码节点提取**
 
+由测试结果可以看出，summary和sitename被包裹在一起，所以我们添加一个代码节点进行参数提取输出。
 
+![代码节点配置](https://github.com/user-attachments/assets/d3ea65c2-85f1-4519-9350-1f3633766e87)
+
+```
+import json
+
+async def main(args: Args) -> Output:
+    # 从输入中提取文本
+    text = args.params.get("input", "")
+    
+    # 解析JSON
+    try:
+        data = json.loads(text)
+        summary = data.get("summary", "")
+        site_name = data.get("siteName", "")
+    except json.JSONDecodeError:
+        summary = ""
+        site_name = ""
+
+    ret: Output = {
+        "summary": summary,
+        "sitename": site_name
+    }
+    return ret
+```
+
+**4. 代码节点测试结果**
+
+![测试结果](https://github.com/user-attachments/assets/fd3946c5-2577-4cf4-bbbf-306b9be663fc)
 
 ## 十二、图文类--收集日期插件
 
