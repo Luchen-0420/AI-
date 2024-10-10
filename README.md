@@ -19,9 +19,9 @@
 
 ### 思路拆解：
 
-```3个多维表格```：1张整理具体指向内容的分享链接、1张收藏各个公众号+博主+工具网站等、1张记录关键词+灵感+随手记。
+```1张多维表格```：1张整理具体指向内容的分享链接。
 
-```4个工作流```：分别写入3张多维表格的工作流+1个推荐阅读工作流。
+```2个工作流```：1个写入多维表格的工作流+1个推荐阅读工作流。
 
 ```1个bot设置```：设定bot的人设与回复逻辑
 
@@ -31,9 +31,7 @@
 
 可以根据自己的需求，进行修改。以下仅个人在设计字段时的一些思路。
 
-### 1. 具体指向内容的分享链接（内容收藏表）
-
-**1.1 表格设计前思考为什么要收藏这篇文章：**
+**1. 表格设计前思考为什么要收藏这篇文章：**
 
 ① 属于什么领域，属于什么性质（科普、纯技术、实操....），什么阶段（初级、中级、进阶....）等等......
 
@@ -42,7 +40,7 @@
 ③ 别人推荐的，但是现在没空细看，先收录一下
 
 
-**1.2 表格设计**
+**2. 表格设计**
 
 ```字段说明```如下：
 
@@ -60,37 +58,19 @@
 | 读后感     | 文本        | 读后感                                                                   |
 | 价值等级   | 单选         | 这篇文章含金量怎么样，可自己设置值，比如：低、中、高                          |
 
+**3. 新建多维表格注意事项**
+
+1. 个人用户直接从"多维表格"新建。企业用户在云文档内新建也没关系。
+
+2. 表格链接在浏览器中一定不能是wiki
+
+![新建多维表格](https://github.com/user-attachments/assets/b402335e-b5fa-47fd-9b7c-3af8b6829e34)
+
+![wiki](https://github.com/user-attachments/assets/4752ef80-29f1-46ca-a480-c256f1d28de4)
+
+![base](https://github.com/user-attachments/assets/e2325b1c-3fad-4a16-822b-eb92ad911639)
+
 ![空表示例](https://github.com/user-attachments/assets/e4e83bee-4e3e-4f7b-8066-d0f213d1f0ec)
-
-
-### 2. 收藏各个公众号、博主、工具网站等
-
-```字段说明```如下：
-
-| 字段名     | 飞书字段类型 | 字段说明                                                                 |
-|------------|---------------|--------------------------------------------------------------------------|
-| 账号id              | 文本        | 作为平台的唯一标识（微信公众号好像没有），在名称修改过的情况下可以通过ID找到 |
-| 账号名称/网站地址    | 文本         | 账号名称 或 网站地址                                                   |
-| 所属领域         | 单选         | 比如农业、AI等等，一个大的领域范畴                               |
-| 看点关键词       | 多选         | 细分小的领域，账号自己标注的tag或者你赋予它的tag 。比如它属于AI大领域中的文生图、视频生成等等 |
-| 来源             | 单选          | 来自哪个平台，如：b站、小红书、网站等等。后续如果扩展做数据统计时可作为一项分类指标   |
-| 备注             | 文本         | 其他觉得有有必要的理由                                                                |
-
-![空表示例](https://github.com/user-attachments/assets/c072290a-e586-4101-a156-e9757b9ed5f0)
-
-
-### 3. 记录关键词、灵感、随手记
-
-```字段说明```如下：
-
-| 字段名     | 飞书字段类型 | 字段说明                                                                 |
-|------------|---------------|--------------------------------------------------------------------------|
-| 日期       | 文本          | 记录的时间，和第一张表一样，不想做日期处理，才设置文本型 |
-| 灵感来源    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考，来自微信群还是来自某个人，还是来自某篇文章，某个网站 | 
-| 类型       | 单选          | 打tag，比如产品设计、职业规划、稍后查询等等                              |
-| 记录    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考，来自微信群还是来自某个人，还是来自某篇文章，某个网站 |
-| 记录    | 文本         | 比如来自看到的什么场景，经历的什么事情引发的思考，来自微信群还是来自某个人，还是来自某篇文章，某个网站 |
-
 
 ## 二、coze新建bot、工作流的位置
 
@@ -281,7 +261,6 @@ def ask_question(question: str) -> Optional[str]:
 
 ![变量分类](https://github.com/user-attachments/assets/9b1206b2-b9e0-4956-a8af-4dc35085059a)
 
-
 我们要新增的变量分别有```链接```、```体裁```、```tag```、```收藏原因```。
 
 判断是否要进行链接提取，我们需要加一个boolean值的变量作为判断。
@@ -377,76 +356,193 @@ async def main(args):
 
 ![抖音移动端分享链接](https://github.com/user-attachments/assets/3412396b-e792-47b0-ae23-dcb8d85a87f8)
 
-**4. 新建大模型节点**
+**4. 添加internlm_api插件**
 
-![大模型节点配置](https://github.com/user-attachments/assets/22268a1b-263d-44ac-9c89-591804aa3958)
-
-1. 选择你想用的```大模型```，我这里选的kimi。
-2. 定义输入变量：变量值引用的是原始分享链接的url（开始节点的url）
-3. 设置提示词：引用输入参数"input"。
-4. 定义输出变量：我需要输出一个标题、一个平台名称。
+![配置图](https://github.com/user-attachments/assets/665a4001-d19f-4e62-a359-b3d7d3cbda39)
 
 ```提示词```
 
 ```
-# 分享链接标题提取提示词
-
-你是一个专门用于从任何社交媒体分享链接中提取标题的AI助手。你的任务是从给定的文本中识别并提取出最相关的标题或主要内容描述，并直接返回结果，不添加任何额外的格式或说明。
-
-## 指令：
-
-1. 仔细分析给定的{{input}}，寻找表示视频或文章主要内容的关键句子或短语。
-2. 如果能识别出平台名称，使用最常见、最正式的名称。例如：
-   - 使用平台的官方中文名称（如果有）
-   - 避免使用缩写或非正式的别称
-   - 保持名称的一致性，每次对同一平台使用相同的名称
-3. 提取出最能概括内容主题的句子或短语。
-4. 如果存在多个可能的标题，选择最完整、最有信息量的一个。
-5. 直接返回提取出的标题，不要添加任何解释、格式或额外的评论。
-6. 不要使用引号或其他标点符号包裹提取的标题。
-
-现在，请根据以上指令处理给定的文本，并直接提取出最相关的标题或主要内容描述。
+# 任务
+\n
+根据用户输入， 提取出最能概括内容主题的句子或短语。
+\n
+# 输出格式要求
+\n
+直接输出原始JSON格式，不要使用任何包装或代码块。严格按照以下格式输出，不添加任何其他内容：
+\n
+{
+"title": "在这里填写标题",
+"siteName": "在这里填写平台名称"
+}
+\n
+# 输出内容要求
+\n
+title：捕捉内容的核心主题，应该简洁明了，能够概括整体内容。不要使用"标题："等前缀
+\n
+siteName：仅回答URL归属的平台名称，不需要额外解释,不要使用"平台:"等前缀。使用最常见、最正式的名称。具体要求：
+\n
+- 使用平台的官方中文名称（如果有）
+\n
+- 避免使用缩写或非正式的别称
+\n
+- 保持名称的一致性，每次对同一平台使用相同的名称
+\n
+# 重要提醒
+\n
+- 直接输出内容，不要加```json或任何其他代码块标记
+\n
+- 不要将输出包装在任何其他字段中
+\n
+- 确保输出的是可以直接被解析的原始JSON
+\n
+- 除了指定的JSON结构外，不要输出任何其他内容
 ```
 
 **5. 测试大模型节点**
 
-**测试单个节点时，可以把"引用"改为"输入"，下面涉及的所有单个节点测试，我就不赘述这句了。**
+分别对b站和抖音链接进行测试。
 
-分别拿抖音、B站2个视频链接测试下。
+![b站](https://github.com/user-attachments/assets/92eb70da-f17c-4ac8-8596-c8ed610f19d1)
 
-![抖音链接提取](https://github.com/user-attachments/assets/de224f15-000d-4f14-9a48-e612ee2eddd2)
-
-![哔哩哔哩链接提取](https://github.com/user-attachments/assets/8d4734f6-ace0-43b8-a5de-78adb771cb69)
-
-截止这里，我们的工作流应该如图所示。
-![整体图](https://github.com/user-attachments/assets/6e75a4f8-12c6-4945-af07-ced93058f330)
+![抖音](https://github.com/user-attachments/assets/df939e16-d698-49d6-9921-59b9c9f10ce9)
 
 接下来进行第2个```if选择器```的```else```情况处理————处理只有Url地址的分享。
 
+**6. 提取参数**
+
+添加代码节点，对大模型返回的结果进行提取。
+
+![配置图](https://github.com/user-attachments/assets/d01d3f2f-41c2-4a00-b73a-ecbf503cc827)
+
+```代码```
+
+```
+import json
+async def main(args: Args) -> Output:
+    text = args.params.get("input", "")
+
+    # 如果有代码块标记，去除它们
+    if "```json" in text:
+        cleaned_text = text.replace("```json\n", "").replace("\n```", "").strip()
+    else:
+        cleaned_text = text.strip()
+
+
+    # 尝试解析JSON
+    try:
+        data = json.loads(cleaned_text)
+        title = data.get("title", "")
+        site_name = data.get("siteName", "")
+    except json.JSONDecodeError:
+        title = ""
+        site_name = ""
+
+    ret: Output = {
+        "title": title,
+        "sitename": site_name
+    }
+    return ret
+```
+
+运行结果如下：
+
+![运行结果](https://github.com/user-attachments/assets/74fee6b1-a5f6-4f52-8748-bf0b3cdd7c01)
 
 ## 七、"视频"分支---只有url地址的分享处理
 
 对只有url地址的分享链接，做提取平台处理和对收藏理由进行提炼大概标题，复制```第六步配置过的大模型节点```，做提示词修改。
 
-![配置信息](https://github.com/user-attachments/assets/4e3f67d5-8eba-46b9-884a-0685e80603ad)
+我们需要先将url和reason拼接一起传递给插件。
 
-**1. 提示词**
+
+
+**1. 参数拼接**
+
+添加文本处理节点并设置拼接参数，点击节点测试按钮，测试结果如下：
+
+![测试结果](https://github.com/user-attachments/assets/60d7ccde-c11c-415b-8cba-98078f09c263)
+
+**2. 提示词**
 
 ```
-## 指令：
-1. 仔细分析给定的{{input}}，识别出平台名称，使用最常见、最正式的名称。例如：
-   - 使用平台的官方中文名称（如果有）
-   - 避免使用缩写或非正式的别称
-   - 保持名称的一致性，每次对同一平台使用相同的名称
-2. 直接返回平台名称，不要添加任何解释、格式或额外的评论。
-3.仔细分析给定的 {{reason}}，提炼出不大于10个字的标题
+# 任务
+\n
+根据用户输入， 提取出最能概括内容主题的句子或短语、识别出平台。
+\n
+# 输出格式要求
+\n
+严格按照以下格式输出，不添加任何其他内容，直接输出原始JSON格式，不要使用任何包装或代码块：
+\n
+{
+"title": "在这里填写标题",
+"siteName": "在这里填写平台名称"
+}
+\n
+# 输出内容要求
+\n
+title：根据用户传递的reason参数内容捕捉内容的核心主题，应该简洁明了，能够概括整体内容。不要使用"标题："等前缀
+\n
+siteName：仅回答url归属的平台名称，不需要额外解释,不要使用"平台:"等前缀。使用最常见、最正式的名称。具体要求：
+\n
+- 使用平台的官方中文名称（如果有）
+\n
+- 避免使用缩写或非正式的别称
+\n
+- 保持名称的一致性，每次对同一平台使用相同的名称
+\n
+# 重要提醒
+\n
+- 直接输出内容，不要加```json或任何其他代码块标记
+\n
+- 不要将输出包装在任何其他字段中
+\n
+- 确保输出的是可以直接被解析的原始JSON
+\n
+- 除了指定的JSON结构外，不要输出任何其他内容
+
 ```
 
-**2. 测试大模型节点**
+**3. 测试大模型节点**
 
-![youtube测试1](https://github.com/user-attachments/assets/3975c5f7-d948-4b6a-ba3b-49c380f7df1b)
 
-![youtube测试2](https://github.com/user-attachments/assets/15a1b71b-b624-4651-8825-fae583c0e55b)
+
+**4. 返回结果参数提取**
+
+![配置](https://github.com/user-attachments/assets/bd277623-9dc3-4c66-af2f-3368cc1954f4)
+
+```代码```
+
+```
+import json
+async def main(args: Args) -> Output:
+    text = args.params.get("input", "")
+
+    # 如果有代码块标记，去除它们
+    if "```json" in text:
+        cleaned_text = text.replace("```json\n", "").replace("\n```", "").strip()
+    else:
+        cleaned_text = text.strip()
+
+
+    # 尝试解析JSON
+    try:
+        data = json.loads(cleaned_text)
+        title = data.get("title", "")
+        site_name = data.get("siteName", "")
+    except json.JSONDecodeError:
+        title = ""
+        site_name = ""
+
+    ret: Output = {
+        "title": title,
+        "sitename": site_name
+    }
+    return ret
+```
+
+![测试结果](https://github.com/user-attachments/assets/b6da171e-4f40-40a0-b209-349a2c496424)
+
 
 
 截止这里，对```视频类```链接处理情况都已经完成。工作流整体如图所示：
@@ -601,7 +697,7 @@ async def main(args: Args) -> Output:
 \n
 # 输出格式要求
 \n
-直接输出JSON格式，不要使用任何包装或代码块。严格按照以下格式输出，不添加任何其他内容：
+直接输出原始JSON格式，不要使用任何包装或代码块。严格按照以下格式输出，不添加任何其他内容：
 \n
 {
 \n
@@ -651,9 +747,15 @@ async def main(args: Args) -> Output:
     # 从输入中提取文本
     text = args.params.get("input", "")
     
+    # 如果有代码块标记，去除它们
+    if "```json" in text:
+        cleaned_text = text.replace("```json\n", "").replace("\n```", "").strip()
+    else:
+        cleaned_text = text.strip()
+
     # 解析JSON
     try:
-        data = json.loads(text)
+        data = json.loads(cleaned_text)
         summary = data.get("summary", "")
         site_name = data.get("siteName", "")
     except json.JSONDecodeError:
@@ -861,7 +963,6 @@ async function main({ params }: Args): Promise<Output> {
 
 ```
 async function main({ params }: Args): Promise<Output> {
-    console.log('params received:', params); // 打印 params 对象查看实际值
 
     let ret; // 在外部声明 ret 变量
 
@@ -944,150 +1045,6 @@ async function main({ params }: Args): Promise<Output> {
 ![表格视图](https://github.com/user-attachments/assets/d8e1dd85-3112-4bf7-ba76-b17750a30bd6)
 
 ![画册视图](https://github.com/user-attachments/assets/3ad43dbf-c90c-46e8-9c59-651d35453bff)
-
-# 有效工具、账号、网站收藏工作流搭建
-
-通过第一个工作流的搭建，一定已经熟悉了大部分操作，下面几个工作流搭建的一些简单步骤，我就不截图了。
-
-## 一、新建account_collect工作流
-
-**配置输入节点**
-
-看表格元数据，来决定哪些是自己要手动输入的。每个微信公众号其实都有一段介绍，有空的时候我再仔细翻看下官方文档看看有没有开放的api可以获取。结合下表来看，每个都要手动输入。备注和账号id可为空。
-
-![空表](https://github.com/user-attachments/assets/703f2dda-2eed-436f-b306-6ff0f601cf80)
-
-![配置图](https://github.com/user-attachments/assets/9c55c46b-990a-4f7c-b922-d49e46d4e8d4)
-
-## 二、写入飞书表格
-
-和第一个工作流一样：
-
-1. bot内设置变量
-2. 工作流内获取变量
-3. json序列化输入
-4. 写入飞书表格插件
-5. 测试
-
-**1. bot内设置变量**
-
-新建变量，默认值填写```复制的表格链接```
-
-![bot添加变量](https://github.com/user-attachments/assets/e9eae8c0-ae11-455b-a000-f6ea19c742a5)
-
-**2. 工作流内获取变量**
-
-![变量节点](https://github.com/user-attachments/assets/fa26d779-edb7-455a-bc00-1694e568b4af)
-
-**3. json序列化输入**
-
-添加代码节点，配置输出并测试。
-
-与第一个工作流不同的是，我们设置```看点```是一个多选属性，查看飞书开发文档，格式如下：
-
-![请求示例](https://github.com/user-attachments/assets/7b28059b-8f12-45a4-bc46-d8a187600520)
-
-![代码节点](https://github.com/user-attachments/assets/7ab6a259-c7ec-4445-88da-5205e521be1b)
-
-复制之前的代码，修改输入选项后，要对keywords进行格式处理
-
-```代码```
-
-```
-async function main({ params }: Args): Promise<Output> {
-    const fieldsMap = {
-        "账号id": params.id,
-        "账号名称/网站地址": params.name,
-        "所属领域": params.Affiliation,
-        "看点关键词": params.keyword.split(/[，、,]/),
-        "来源": params.sitename,
-        "备注":  params.notes
-    };
-
-    // 构建 fields 对象
-    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-    }, {});
-
-    const ret = {
-        output: [
-            { fields }
-        ]
-    };
-
-    return ret;
-}
-```
-
-**4. 添加飞书表格插件**
-
-![飞书表格写入配置](https://github.com/user-attachments/assets/b964c273-d5d9-4d13-80bb-dc5ca9757995)
-
-**5. 测试**
-
-![表格视图](https://github.com/user-attachments/assets/9ae3f49f-b2e3-49ba-afe6-d04b84e7c871)
-
-![画册视图](https://github.com/user-attachments/assets/6ad0d28e-6c20-4f00-a79b-f1796a677025)
-
-
-# 随手记工作流搭建
-
-## 一、新建daily_record工作流
-
-看表格元数据，我们需要手动来输入"灵感来源"、"类型"、"记录"、"持续关注"。
-
-![输入参数](https://github.com/user-attachments/assets/1139b705-9a42-40ae-a26a-502bce099519)
-
-## 二、添加变量和时间插件
-
-先到bot里设置表格变量。
-
-![变量设置](https://github.com/user-attachments/assets/5e72d28e-93c1-4532-a8dc-d04ddf1bb7db)
-
-到工作流里分别添加变量、时间获取插件。
-
-
-## 三、格式处理
-
-添加```代码```节点，配置和代码如下：
-
-![配置图](https://github.com/user-attachments/assets/ae89cabf-118d-43f7-b7c9-b018bb0e14ed)
-
-```
-async function main({ params }: Args): Promise<Output> {
-    const fieldsMap = {
-        "日期": params.date,
-        "灵感来源": params.from,
-        "类型": params.genre,
-        "记录": params.record, 
-        "持续关注": params.continue
-    };
-
-    const fields = Object.entries(fieldsMap).reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-    }, {});
-
-    const ret = {
-        output: [
-            { fields }
-        ]
-    };
-
-    return ret;
-}
-```
-
-## 四、写入飞书表格
-
-添加写入飞书表格插件，并设置。
-
-![配置图](https://github.com/user-attachments/assets/fed2c7cf-d3dc-4b88-9331-5917c42c0d51)
-
-## 五、测试
-
-![测试结果](https://github.com/user-attachments/assets/376d1afd-5395-4c71-9356-f853d9939341)
 
 
 # 内容推荐工作流
